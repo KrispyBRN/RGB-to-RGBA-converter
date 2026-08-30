@@ -9,6 +9,9 @@ on:
 jobs:
   convert:
     runs-on: ubuntu-latest
+    # Tambahkan izin berikut agar bot bisa melakukan commit dan push
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
