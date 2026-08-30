@@ -1,0 +1,57 @@
+name: Convert PNG RGB to RGBA
+
+on:
+  push:
+    branches:
+      - main # Jalankan otomatis saat push ke branch main
+  workflow_dispatch: # Memungkinkan Anda menjalankan workflow ini manual dari tab Actions
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Unduh kode dari repositori
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Pasang Python di mesin virtual GitHub
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-python: "3.x"
+
+      # 3. Pasang pustaka Pillow (PIL)
+      - name: Install Pillow
+        run: pip install Pillow
+
+      # 4. Jalankan skrip Python untuk mencari dan mengubah berkas PNG
+      - name: Run conversion script
+        run: |
+          python -c "
+          import os
+          from PIL import Image
+
+          # Cari semua berkas .png di dalam repositori
+          for root, dirs, files in os.walk('.'):
+              # Lewati folder tersembunyi seperti .git atau .github
+              if '.git' in root or '.github' in root:
+                  continue
+              for file in files:
+                  if file.lower().endswith('.png'):
+                      file_path = os.path.join(root, file)
+                      try:
+                          with Image.open(file_path) as img:
+                              if img.mode != 'RGBA':
+                                  print(f'Mengubah {file_path} dari {img.mode} ke RGBA')
+                                  img.convert('RGBA').save(file_path, 'PNG')
+                      except Exception as e:
+                          print(f'Gagal memproses {file_path}: {e}')
+          "
+
+      # 5. Commit dan Push kembali gambar yang sudah diubah ke repositori
+      - name: Commit and Push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: auto-convert PNG images to RGBA mode"
+          
